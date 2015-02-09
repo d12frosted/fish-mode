@@ -14,13 +14,11 @@
 ;; create the list for font-lock.
 ;; each class of keyword is given a particular face
 (setq fish-font-lock-keywords
-  `(
-    (,fish-commands-regexp 0 font-lock-type-face)
+  `((,fish-commands-regexp 0 font-lock-type-face)
     (,fish-functions-regexp 1 'font-lock-function-name-face)
     (,fish-variables1-regexp 1 'font-lock-variable-name-face)
     (,fish-variables2-regexp 1 'font-lock-variable-name-face)
-    (,fish-constants-regexp 1 'font-lock-variable-name-face)
-))
+    (,fish-constants-regexp 1 'font-lock-variable-name-face)))
 
 (defun fish-comment-dwim (arg)
   "Comment or uncomment current line or region in a smart way. For details, see `comment-dwim'."
@@ -44,99 +42,120 @@
 
         synTable))
 
-(defun fish-swallow-block ()
-  "move backward line til begin of the block"
-  (let ((not-done t))
-    (while not-done
-      (forward-line -1)
-      (if (looking-at "^[ \t]*end")
-          (fish-swallow-block)
-        (if (looking-at "^[ \t]*\\(begin\\|for\\|function\\|if\\|switch\\|while\\)")
-            (setq not-done nil))))))
+;; Indentation
 
-(defun fish-get-else-end-indent ()
-  (let ((not-indented t) cur-indent)
-    (while not-indented
-      (forward-line -1)
-      (cond
-       ((looking-at "^[ \t]*if")
-        (setq cur-indent (current-indentation))
-        (setq not-indented nil))
-       ((looking-at "^[ \t]*\\(begin\\|else\\|for\\|function\\|if\\|switch\\|while\\)")
-        (unless (looking-at ".*end$")
-          (setq cur-indent (current-indentation))
-          (setq not-indented nil)))
-       ((looking-at "^[ \t]*case")
-        (setq cur-indent (- (current-indentation) tab-width))
-        (setq not-indented nil))
-       ((looking-at "^[ \t]*end") ; swallow the block
-        (fish-swallow-block))
-       ((bobp)
-        (setq cur-indent 0)
-        (setq not-indented nil))))
-    (if (< cur-indent 0)
-        (setq cur-indent 0)
-      cur-indent)))
-
-(defun fish-get-case-indent ()
-  (let ((not-indented t) cur-indent)
-    (while not-indented
-      (forward-line -1)
-      (cond
-       ((looking-at "^[ \t]*case")
-        (setq cur-indent (current-indentation))
-        (setq not-indented nil))
-       ((looking-at "^[ \t]*switch")
-        (message "switch")
-        (setq cur-indent (+ (current-indentation) tab-width))
-        (setq not-indented nil))
-       ((bobp)
-        (setq cur-indent 0)
-        (setq not-indented nil))))
-    (if (< cur-indent 0)
-        (setq cur-indent 0)
-      cur-indent)))
+(defun what-line-number ()
+  "Returns the current line number of point."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (beginning-of-line)
+      (1+ (count-lines 1 (point))))))
 
 (defun fish-get-normal-indent ()
+  (interactive)
   (let ((not-indented t) cur-indent)
     (while not-indented
-      (message "normal")
+      ;; move up
       (forward-line -1)
       (cond
-       ((and (looking-at "[ \t]*\\(begin\\|case\\|else\\|for\\|function\\|if\\|switch\\|while\\)\\>")
-             (not (looking-at ".*end$")))
+       ;; found block-opening term, so increase indentation level by tab-width
+       ((looking-at "[ \t]*\\(if\\|else\\|function\\|while\\|for\\|begin\\|switch\\|case\\)")
         (setq cur-indent (+ (current-indentation) tab-width))
         (setq not-indented nil))
-       ((bobp)
-        (setq cur-indent 0)
-        (setq not-indented nil))
+
+       ;; found empty line, so just skip it
        ((looking-at "[ \t]*$"))
+
+       ;; default case, so return indentation level of current line
        (t
         (setq cur-indent (current-indentation))
         (setq not-indented nil))))
-    (if (< cur-indent 0)
-        (setq cur-indent 0)
-      cur-indent)))
+    cur-indent))
+
+(defun fish-get-case-indent ()
+  (interactive)
+  (let ((not-indented t) cur-indent)
+    (while not-indented
+      ;; move up
+      (forward-line -1)
+      (cond
+       ;; found 'switch', so increase indentation level by tab-width
+       ((looking-at "[ \t]*\\(switch\\)")
+        (setq cur-indent (+ (current-indentation) tab-width))
+        (setq not-indented nil))
+
+       ;; found another 'case', so return it's indentation level
+       ((looking-at "[ \t]*\\(case\\)")
+        (setq cur-indent (current-indentation))
+        (setq not-indented nil))
+
+       ;; found empty line, so just skip it
+       ((looking-at "[ \t]*$"))
+
+       ;; default case, so return indentation level of current line
+       (t
+        (setq cur-indent (- (current-indentation) tab-width))
+        (setq not-indented nil))))
+    cur-indent))
+
+(defun fish-get-end-indent ()
+  (interactive)
+  (let (cur-indent (count-of-ends 1))
+    (while (not (eq count-of-ends 0))
+      ;; move up
+      (forward-line -1)
+      (cond
+       ;; found block-opening term, so check if it matches to our end
+       ((looking-at "[ \t]*\\(if\\|function\\|while\\|for\\|begin\\|switch\\)")
+        (setq count-of-ends (- count-of-ends 1))
+        (if (eq count-of-ends 0)
+            ;; block-opening term matches, so return it's indentation level
+            (progn (setq cur-indent (current-indentation))
+                   (setq pair-not-found nil))
+          ;; block-opening term does not match, so seek further
+          ))
+
+       ;; found another 'end', so increase count of 'end' terms
+       ((looking-at "[ \t]*\\(end\\)")
+        (setq count-of-ends (+ count-of-ends 1)))
+
+       ;; nothing interesting found, so seek further
+       (t)))
+    cur-indent))
 
 (defun fish-indent-line ()
-  "Indent current line."
+  "Indent current line"
   (interactive)
 
   (if (bobp)
       (indent-line-to 0)
     (let (cur-indent)
       (save-excursion
+        (beginning-of-line)
         (cond
-         ((looking-at "[ \t]*\\(end\\|else\\)")
-          (setq cur-indent (fish-get-else-end-indent)))
-         ((looking-at "[ \t]*case")
-          (setq cur-indent (fish-get-case-indent))
-          )
+         ;; already on line 1, so leave it alone
+         ((eq (what-line-number) 1)
+          (setq cur-indent (current-indentation)))
+
+         ;; found 'end' - need to move back based on level of matching pair
+         ((looking-at "[ \t]*\\(end\\)")
+          (setq cur-indent (fish-get-end-indent)))
+
+         ;; found 'case' - need to move forth based on matching swtich
+         ((looking-at "[ \t]*\\(case\\)")
+          (setq cur-indent (fish-get-case-indent)))
+
+         ;; found 'else' - like default condition, but also move left
+         ((looking-at "[ \t]*\\(else\\)")
+          (setq cur-indent (- (fish-get-normal-indent) tab-width)))
+
+         ;; default case - indent based on previous non-empty line
          (t
           (setq cur-indent (fish-get-normal-indent)))))
-      (if cur-indent
-          (indent-line-to cur-indent)
-        (indent-line-to 0)))))
+      (if (< cur-indent 0) (setq cur-indent 0))
+      (indent-line-to cur-indent))))
 
 ;; define the mode
 (define-derived-mode fish-mode prog-mode
