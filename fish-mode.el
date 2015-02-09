@@ -3,10 +3,10 @@
 
 ;; create the regex string for each class of keywords
 (setq fish-commands-regexp (regexp-opt fish-commands 'words))
-(setq fish-functions-regexp "function \\([[:alpha:]_][[:alnum:]_]*\\)")
-(setq fish-variables1-regexp "set \\([[:alpha:]_][[:alnum:]_]*\\)")
-(setq fish-variables2-regexp "set -\\w+ \\([[:alpha:]_][[:alnum:]_]*\\)")
-(setq fish-constants-regexp "\\$\\([[:alpha:]_][[:alnum:]_]*\\)")
+(setq fish-functions-regexp "function \\([[:alnum:]_]+\\)")
+(setq fish-variables1-regexp "set \\([[:alnum:]_]+\\)")
+(setq fish-variables2-regexp "set -\\w+ \\([[:alnum:]_]+\\)")
+(setq fish-constants-regexp "\\$\\([[:alnum:]_]+\\)")
 
 ;; clear memory
 (setq fish-commands nil)
@@ -14,11 +14,11 @@
 ;; create the list for font-lock.
 ;; each class of keyword is given a particular face
 (setq fish-font-lock-keywords
-  `((,fish-commands-regexp 0 font-lock-type-face)
-    (,fish-functions-regexp 1 'font-lock-function-name-face)
-    (,fish-variables1-regexp 1 'font-lock-variable-name-face)
-    (,fish-variables2-regexp 1 'font-lock-variable-name-face)
-    (,fish-constants-regexp 1 'font-lock-variable-name-face)))
+      `((,fish-functions-regexp 1 'font-lock-function-name-face)
+        (,fish-commands-regexp 0 font-lock-type-face)
+        (,fish-variables1-regexp 1 'font-lock-variable-name-face)
+        (,fish-variables2-regexp 1 'font-lock-variable-name-face)
+        (,fish-constants-regexp 1 'font-lock-variable-name-face)))
 
 (defun fish-comment-dwim (arg)
   "Comment or uncomment current line or region in a smart way. For details, see `comment-dwim'."
