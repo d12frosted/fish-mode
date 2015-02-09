@@ -1,3 +1,38 @@
+;;; fish-mode.el --- Major mode for fish shell scripts  -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2015 Boris Buliga (d12frosted)
+
+;; Author: Boris Buliga <d12frosted@icloud.com>
+;; Keywords: Fish, shell
+;; Package-Requires: ((emacs "24"))
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Current features:
+;;
+;;  - syntax highlighting
+;;  - indentation
+;;  - comment-dwim support
+;;
+;; TODO:
+;;
+;;  - respect users point position
+
+;;; Code:
+
 ;; define several calss of keywords
 (setq fish-commands '("alias" "and" "begin" "bg" "bind" "block" "break" "breakpoint" "builtin" "case" "cd" "command" "commandline" "complete" "contains" "continue" "count" "dirh" "dirs" "echo" "else" "emit" "end" "eval" "exec" "exit" "fg" "fish" "fish_config" "fish_indent" "fish_pager" "fish_prompt" "fish_right_prompt" "fish_update_completions" "fishd" "for" "funced" "funcsave" "function" "functions" "help" "history" "if" "isatty" "jobs" "math" "mimedb" "nextd" "not" "open" "or" "popd" "prevd" "psub" "pushd" "pwd" "random" "read" "return" "set" "set_color" "source" "status" "switch" "test" "trap" "type" "ulimit" "umask" "vared" "while"))
 
@@ -94,7 +129,7 @@
        ;; found empty line, so just skip it
        ((looking-at "[ \t]*$"))
 
-       ;; default case, so return indentation level of current line
+       ;; default case, so return indentation level of current line - tab-width
        (t
         (setq cur-indent (- (current-indentation) tab-width))
         (setq not-indented nil))))
@@ -143,7 +178,7 @@
          ((looking-at "[ \t]*\\(end\\)")
           (setq cur-indent (fish-get-end-indent)))
 
-         ;; found 'case' - need to move forth based on matching swtich
+         ;; found 'case' - need to move forth based on matching switch
          ((looking-at "[ \t]*\\(case\\)")
           (setq cur-indent (fish-get-case-indent)))
 
@@ -186,3 +221,5 @@
 (add-to-list 'interpreter-mode-alist '("fish" . fish-mode))
 
 (provide 'fish-mode)
+
+;;; fish-mode.el ends here
