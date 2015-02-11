@@ -26,10 +26,6 @@
 ;;  - syntax highlighting
 ;;  - indentation
 ;;  - comment-dwim support
-;;
-;; TODO:
-;;
-;;  - respect users point position
 
 ;;; Code:
 
@@ -166,7 +162,7 @@
 
   (if (bobp)
       (indent-line-to 0)
-    (let (cur-indent)
+    (let (cur-indent (rpos (- (point-max) (point))))
       (save-excursion
         (beginning-of-line)
         (cond
@@ -190,7 +186,9 @@
          (t
           (setq cur-indent (fish-get-normal-indent)))))
       (if (< cur-indent 0) (setq cur-indent 0))
-      (indent-line-to cur-indent))))
+      (indent-line-to cur-indent)
+      (if (> (- (point-max) rpos) (point))
+          (goto-char (- (point-max) rpos))))))
 
 ;; define the mode
 (define-derived-mode fish-mode prog-mode

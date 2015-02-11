@@ -18,10 +18,6 @@ Currently `fish-mode` has several features:
 * support of `comment-dwim`
 * `fish` files are associated with `fish-mode` by default
 
-TODO:
-
-* indentation function sets point to the end of indentation
-
 ## Contribute
 
 Pull requests are welcome, as well as feature requests and bug reports.
