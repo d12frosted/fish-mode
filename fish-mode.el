@@ -34,10 +34,10 @@
 
 ;; create the regex string for each class of keywords
 (setq fish-commands-regexp (regexp-opt fish-commands 'words))
-(setq fish-functions-regexp "function \\([[:alnum:]_]+\\)")
-(setq fish-variables1-regexp "set \\([[:alnum:]_]+\\)")
-(setq fish-variables2-regexp "set -\\w+ \\([[:alnum:]_]+\\)")
-(setq fish-constants-regexp "\\$\\([[:alnum:]_]+\\)")
+(setq fish-functions-regexp "function \\([[:alnum:]_-]+\\)")
+(setq fish-variables1-regexp "set \\([[:alnum:]_-]+\\)")
+(setq fish-variables2-regexp "set -\\w+ \\([[:alnum:]_-]+\\)")
+(setq fish-constants-regexp "\\$\\([[:alnum:]_-]+\\)")
 
 ;; clear memory
 (setq fish-commands nil)
