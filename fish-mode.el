@@ -29,14 +29,22 @@
 
 ;;; Code:
 
-;; define several calss of keywords
+;; built-in terms
 (setq fish-commands '("alias" "and" "begin" "bg" "bind" "block" "break" "breakpoint" "builtin" "case" "cd" "command" "commandline" "complete" "contains" "continue" "count" "dirh" "dirs" "echo" "else" "emit" "end" "eval" "exec" "exit" "fg" "fish" "fish_config" "fish_indent" "fish_pager" "fish_prompt" "fish_right_prompt" "fish_update_completions" "fishd" "for" "funced" "funcsave" "function" "functions" "help" "history" "if" "isatty" "jobs" "math" "mimedb" "nextd" "not" "open" "or" "popd" "prevd" "psub" "pushd" "pwd" "random" "read" "return" "set" "set_color" "source" "status" "switch" "test" "trap" "type" "ulimit" "umask" "vared" "while"))
 
 ;; create the regex string for each class of keywords
+
+;; built-int fish command
 (setq fish-commands-regexp (regexp-opt fish-commands 'words))
+
+;; funtion definition
 (setq fish-functions-regexp "function \\([[:alnum:]_-]+\\)")
+
+;; variables definition
 (setq fish-variables1-regexp "set \\([[:alnum:]_-]+\\)")
 (setq fish-variables2-regexp "set -\\w+ \\([[:alnum:]_-]+\\)")
+
+;; extracting variables
 (setq fish-constants-regexp "\\$\\([[:alnum:]_-]+\\)")
 
 ;; clear memory
