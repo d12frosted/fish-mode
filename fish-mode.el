@@ -172,6 +172,14 @@
 
 ;;; Indentation helpers
 
+(defvar fish/block-opening-terms
+  '("if"
+    "function"
+    "while"
+    "for"
+    "begin"
+    "switch"))
+
 (defun fish/current-line ()
   "Return the line at point as a string."
   (buffer-substring (line-beginning-position) (line-end-position)))
@@ -184,16 +192,17 @@ For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
       (setq x2 (funcall f x2 (pop li))))
     x2))
 
-(defun fish/count-of (regex string)
+(defun fish/count-of-tokens-in-string (tokens string)
   (fish/fold
    (lambda (count str)
-     (if (string-match regex str 0)
+     (if (member (replace-regexp-in-string
+                  "\\(.*\\);"
+                  "\\1"
+                  str) tokens)
          (+ count 1)
        count))
    0
    (split-string string)))
-
-(defvar fish/block-opening-terms-regexp "\\(if\\|function\\|while\\|for\\|begin\\|switch\\)")
 
 (defun fish/at-comment-line? ()
   "Returns t if looking at comment line, nil otherwise."
@@ -204,11 +213,11 @@ For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
   (looking-at "[ \t]*$"))
 
 (defun fish/count-of-opening-terms ()
-  (fish/count-of fish/block-opening-terms-regexp
+  (fish/count-of-tokens-in-string fish/block-opening-terms
                  (fish/current-line)))
 
 (defun fish/count-of-end-terms ()
-  (fish/count-of "end" (fish/current-line)))
+  (fish/count-of-tokens-in-string '("end") (fish/current-line)))
 
 (defun fish/at-open-block? ()
   "Returns t if line contains block opening term
@@ -225,19 +234,15 @@ For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
 
 (defun fish/line-contains-block-opening-term? ()
   "Returns t if line contains block opening term, nil otherwise."
-  (or (looking-at (concat "[ \t]*" fish/block-opening-terms-regexp))
-      (looking-at (concat ".?* " fish/block-opening-terms-regexp))
-      (looking-at (concat ".?*" fish/block-opening-terms-regexp " "))))
+  (fish/at-open-block?))
 
 (defun fish/line-contans-end-term? ()
   "Returns t if line contains end term, nil otherwise."
-  (or (looking-at "[ \t]*end")
-      (looking-at ".?* end")
-      (looking-at ".?*end ")))
+  (fish/at-open-end?))
 
 (defun fish/line-contains-open-switch-term? ()
   "Returns t if line contains switch term, nil otherwise."
-  (> (fish/count-of "switch" (fish/current-line))
+  (> (fish/count-of-tokens-in-string '("switch") (fish/current-line))
      (fish/count-of-end-terms)))
 
 ;;; Indentation
