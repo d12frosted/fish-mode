@@ -1,0 +1,22 @@
+#+TITLE:        fish-mode (2)
+#+AUTHOR:       Boris Buliga <d12frosted@icloud.com>
+#+EMAIL:        d12frosted@icloud.com
+#+DATE:         2015-05-01
+#+STARTUP:      showeverything
+#+OPTIONS:      toc:t
+
+Major mode for editing fish shell scripts. Lightweight, fast and knows where to put its ~end~.
+
+* Features
+
+[[file:images/screenshot_1.png]]
+
+Currently ~fish-mode~ has several features:
+
+- syntax highlighting (thanks to Tony Wang <wwwjfy@gmail.com>)
+- code indentation that works even in esoteric situations
+- ~fish~ files are associated with `fish-mode` by default
+
+* Contribute
+
+Pull requests are welcome, as well as feature requests and bug reports.
