@@ -38,126 +38,126 @@
 
    ;; Builtins
    `( ,(rx symbol-start
-	   (or
-	    "alias"
-	    "and"
-	    "bg"
-	    "bind"
-	    "block"
-	    "breakpoint"
-	    "builtin"
-	    "cd"
-	    "commandline"
-	    "command"
-	    "complete"
-	    "contains"
-	    "count"
-	    "dirh"
-	    "dirs"
-	    "echo"
-	    "emit"
-	    "eval"
-	    "exec"
-	    "fg"
-	    "fish_config"
-	    "fishd"
-	    "fish_indent"
-	    "fish_pager"
-	    "fish_prompt"
-	    "fish_right_prompt"
-	    "fish"
-	    "fish_update_completions"
-	    "funced"
-	    "funcsave"
-	    "functions"
-	    "help"
-	    "history"
-	    "isatty"
-	    "jobs"
-	    "math"
-	    "mimedb"
-	    "nextd"
-	    "open"
-	    "or"
-	    "popd"
-	    "prevd"
-	    "psub"
-	    "pushd"
-	    "pwd"
-	    "random"
-	    "read"
-	    "set_color"
-	    "source"
-	    "status"
-	    "test"
-	    "trap"
-	    "type"
-	    "ulimit"
-	    "umask"
-	    "vared"
-	    )
-	   symbol-end)
+           (or
+            "alias"
+            "and"
+            "bg"
+            "bind"
+            "block"
+            "breakpoint"
+            "builtin"
+            "cd"
+            "commandline"
+            "command"
+            "complete"
+            "contains"
+            "count"
+            "dirh"
+            "dirs"
+            "echo"
+            "emit"
+            "eval"
+            "exec"
+            "fg"
+            "fish_config"
+            "fishd"
+            "fish_indent"
+            "fish_pager"
+            "fish_prompt"
+            "fish_right_prompt"
+            "fish"
+            "fish_update_completions"
+            "funced"
+            "funcsave"
+            "functions"
+            "help"
+            "history"
+            "isatty"
+            "jobs"
+            "math"
+            "mimedb"
+            "nextd"
+            "open"
+            "or"
+            "popd"
+            "prevd"
+            "psub"
+            "pushd"
+            "pwd"
+            "random"
+            "read"
+            "set_color"
+            "source"
+            "status"
+            "test"
+            "trap"
+            "type"
+            "ulimit"
+            "umask"
+            "vared"
+            )
+           symbol-end)
       .
       font-lock-builtin-face)
 
    ;; Keywords
    `( ,(rx symbol-start
-	   (or
-	    "begin"
-	    "break"
-	    "case"
-	    "continue"
-	    "else"
-	    "end"
-	    "exit"
-	    "for"
-	    "function"
-	    "if"
-	    "return"
-	    "set"
-	    "switch"
-	    "while"
-	    )
-	   symbol-end)
+           (or
+            "begin"
+            "break"
+            "case"
+            "continue"
+            "else"
+            "end"
+            "exit"
+            "for"
+            "function"
+            "if"
+            "return"
+            "set"
+            "switch"
+            "while"
+            )
+           symbol-end)
       .
       font-lock-keyword-face)
 
 
    ;; Function name
    `( ,(rx symbol-start "function"
-	   (1+ space)
-	   (group (1+ (or alnum (syntax symbol)))) symbol-end)
+           (1+ space)
+           (group (1+ (or alnum (syntax symbol)))) symbol-end)
       1
       font-lock-function-name-face)
 
    ;; Variable definition
    `( ,(rx
-	symbol-start (or (and "set"
-			      (1+ space)
-			      (optional "-" (repeat 1 2 letter) (1+ space)))
-			 (and "for" (1+ space)))
-	(group (1+ (or alnum (syntax symbol)))))
+        symbol-start (or (and "set"
+                              (1+ space)
+                              (optional "-" (repeat 1 2 letter) (1+ space)))
+                         (and "for" (1+ space)))
+        (group (1+ (or alnum (syntax symbol)))))
       1
       font-lock-variable-name-face)
 
    ;; Variable substitution
    `( ,(rx
-	symbol-start (group "$") (group (1+ (or alnum (syntax symbol)))) symbol-end)
+        symbol-start (group "$") (group (1+ (or alnum (syntax symbol)))) symbol-end)
       (1 font-lock-string-face)
       (2 font-lock-variable-name-face))
 
    ;; Negation
    `( ,(rx symbol-start
-	   (or (and (group "not")
-		    symbol-end)))
+           (or (and (group "not")
+                    symbol-end)))
       1
       font-lock-negation-char-face)
 
    ;; Important
    `( ,(rx symbol-start (and "set"
-			     (1+ space)
-			     (group (and "-" (repeat 1 2 letter)))
-			     (1+ space)))
+                             (1+ space)
+                             (group (and "-" (repeat 1 2 letter)))
+                             (1+ space)))
       1
       font-lock-negation-char-face)))
 
@@ -181,12 +181,22 @@
     "switch"))
 
 (defun fish/current-line ()
-  "Return the line at point as a string."
-  (buffer-substring (line-beginning-position) (line-end-position)))
+  "Return the line at point as a string. Trailing comment is
+removed from result."
+  (let* ((line (buffer-substring (line-beginning-position) (line-end-position)))
+         (comment (fish/trailing-comment line)))
+    (if (s-blank? comment)
+        line
+      (s-replace comment "" line))))
+
+(defun fish/trailing-comment (line)
+  "Return trailing comment in `line' or nil if it doesn't contain
+any."
+  (car (s-match "#.*" (replace-regexp-in-string "\".*\"" "" line))))
 
 (defun fish/fold (f x list)
-  "Recursively applies (F i j) to LIST starting with X.
-For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
+  "Recursively applies (F i j) to LIST starting with X. For
+example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
   (let ((li list) (x2 x))
     (while li
       (setq x2 (funcall f x2 (pop li))))
@@ -214,7 +224,7 @@ For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
 
 (defun fish/count-of-opening-terms ()
   (fish/count-of-tokens-in-string fish/block-opening-terms
-                 (fish/current-line)))
+                                  (fish/current-line)))
 
 (defun fish/count-of-end-terms ()
   (fish/count-of-tokens-in-string '("end") (fish/current-line)))
@@ -429,7 +439,21 @@ For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
 
     cur-indent))
 
+;;; fish_indent
+(defun fish_indent ()
+  "Indent current buffer using fish_indent"
+  (interactive)
+  (let ((current-point (point)))
+    (call-process-region (point-min) (point-max) "fish_indent" t t nil)
+    (goto-char current-point)
+    ))
+
 ;;; Mode definition
+
+;;;###autoload
+(defun fish_indent-before-save ()
+  (interactive)
+  (when (eq major-mode 'fish-mode) (fish_indent)))
 
 ;;;###autoload
 (define-derived-mode fish-mode prog-mode "Fish"
@@ -442,6 +466,8 @@ For example, (fold F X '(1 2 3)) computes (F (F (F X 1) 2) 3)."
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.fish\\'" . fish-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("/fish_funced\\..*\\'" . fish-mode))
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("fish" . fish-mode))
 
