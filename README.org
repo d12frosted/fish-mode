@@ -5,6 +5,13 @@
 #+STARTUP:      showeverything
 #+OPTIONS:      toc:t
 
+#+begin_html
+<p align="center">
+  <a href="https://github.com/sponsors/d12frosted"><img alt="Sponsor" src="https://img.shields.io/badge/Sponsor-d12frosted-pink?logo=githubsponsors&logoColor=white"/></a>
+</p>
+#+end_html
+
+
 Major mode for editing fish shell scripts. Lightweight, fast and knows where to put its ~end~.
 
 * Features
@@ -20,3 +27,7 @@ Currently ~fish-mode~ has several features:
 * Contribute
 
 Pull requests are welcome, as well as feature requests and bug reports.
+
+* Support
+
+If you enjoy this project, you can support its development via [[https://github.com/sponsors/d12frosted][GitHub Sponsors]] or [[https://www.patreon.com/d12frosted][Patreon]].
